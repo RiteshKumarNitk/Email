@@ -1,45 +1,76 @@
 export default function Campaigns() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Campaigns</h1>
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">Campaigns</h1>
+        <p className="text-sm text-gray-500">
+          Manage, edit and track your email campaigns
+        </p>
+      </div>
 
-      <div className="bg-white rounded shadow overflow-hidden">
+      {/* Table Card */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-left">
+          <thead className="bg-gray-50 text-left text-gray-600">
             <tr>
-              <th className="p-3">Name</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Schedule</th>
-              <th className="p-3">Actions</th>
+              <th className="px-4 py-3 font-medium">Name</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Schedule</th>
+              <th className="px-4 py-3 font-medium text-right">Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            <tr className="border-t">
-              <td className="p-3">Job Update Email</td>
-              <td className="p-3">
-                <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700">
+            {/* Row 1 */}
+            <tr className="border-t hover:bg-gray-50 transition">
+              <td className="px-4 py-3 font-medium">
+                Job Update Email
+              </td>
+
+              <td className="px-4 py-3">
+                <span className="inline-flex items-center px-2.5 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700">
                   Scheduled
                 </span>
               </td>
-              <td className="p-3">Daily 10:30 AM</td>
-              <td className="p-3 space-x-2">
-                <button className="text-blue-600">Edit</button>
-                <button className="text-red-600">Delete</button>
+
+              <td className="px-4 py-3 text-gray-600">
+                Daily • 10:30 AM
+              </td>
+
+              <td className="px-4 py-3 text-right space-x-3">
+                <button className="text-blue-600 hover:underline">
+                  Edit
+                </button>
+                <button className="text-red-600 hover:underline">
+                  Delete
+                </button>
               </td>
             </tr>
 
-            <tr className="border-t">
-              <td className="p-3">Promotion Mail</td>
-              <td className="p-3">
-                <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
+            {/* Row 2 */}
+            <tr className="border-t hover:bg-gray-50 transition">
+              <td className="px-4 py-3 font-medium">
+                Promotion Mail
+              </td>
+
+              <td className="px-4 py-3">
+                <span className="inline-flex items-center px-2.5 py-1 text-xs rounded-full bg-green-100 text-green-700">
                   Sent
                 </span>
               </td>
-              <td className="p-3">One Time</td>
-              <td className="p-3 space-x-2">
-                <button className="text-blue-600">Edit</button>
-                <button className="text-red-600">Delete</button>
+
+              <td className="px-4 py-3 text-gray-600">
+                One Time
+              </td>
+
+              <td className="px-4 py-3 text-right space-x-3">
+                <button className="text-blue-600 hover:underline">
+                  Edit
+                </button>
+                <button className="text-red-600 hover:underline">
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>

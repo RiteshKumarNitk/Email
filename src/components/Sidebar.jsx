@@ -6,7 +6,9 @@ const NAV_ITEMS = [
   { label: "Compose", path: "/compose", icon: "✍️" },
   { label: "Campaigns", path: "/campaigns", icon: "📢" },
   { label: "Templates", path: "/templates", icon: "📄" },
+  { label: "Queue", path: "/queue", icon: "🕒" },
   { label: "Contacts", path: "/contacts", icon: "👥" },
+  { label: "Groups", path: "/groups", icon: "🗂️" },
   { label: "Settings", path: "/settings", icon: "⚙️" },
 ];
 

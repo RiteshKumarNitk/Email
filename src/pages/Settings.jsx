@@ -1,88 +1,121 @@
-import { useState } from "react";
-import Input from "../components/Input";
-import Button from "../components/Button";
+import { useState } from "react"
+import { api } from "../api"
+import Button from "../components/Button"
 
 export default function Settings() {
-  const [tab, setTab] = useState("profile");
+  const [form, setForm] = useState({
+    host: "smtp.gmail.com",
+    port: 465,
+    user: "",
+    pass: "",
+  })
+
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState(null)
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    })
+  }
+
+  const saveSMTP = async () => {
+    setLoading(true)
+    setMessage(null)
+
+    try {
+      await api("/smtp", {
+        method: "POST",
+        body: JSON.stringify({
+          host: form.host,
+          port: Number(form.port),
+          user: form.user,
+          pass: form.pass,
+        }),
+      })
+
+      setMessage({
+        type: "success",
+        text: "✅ SMTP verified & saved successfully",
+      })
+
+      setForm({ ...form, pass: "" })
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: err.message || "SMTP setup failed",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Settings
-        </h1>
-        <p className="text-sm text-gray-500">
-          Manage your account and email preferences
-        </p>
+    <div className="p-8 max-w-xl space-y-6">
+      <h1 className="text-2xl font-semibold">SMTP Settings</h1>
+
+      <p className="text-sm text-gray-600">
+        Configure your email SMTP. Emails will be sent from this address.
+      </p>
+
+      {message && (
+        <div
+          className={`p-3 rounded text-sm ${
+            message.type === "success"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <input
+          name="host"
+          placeholder="SMTP Host"
+          value={form.host}
+          onChange={handleChange}
+          className="w-full border px-3 py-2 rounded"
+        />
+
+        <input
+          name="port"
+          type="number"
+          placeholder="SMTP Port"
+          value={form.port}
+          onChange={handleChange}
+          className="w-full border px-3 py-2 rounded"
+        />
+
+        <input
+          name="user"
+          placeholder="Email (SMTP User)"
+          value={form.user}
+          onChange={handleChange}
+          className="w-full border px-3 py-2 rounded"
+        />
+
+        <input
+          name="pass"
+          type="password"
+          placeholder="App Password"
+          value={form.pass}
+          onChange={handleChange}
+          className="w-full border px-3 py-2 rounded"
+        />
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-6 border-b">
-        {["profile", "smtp", "email"].map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`pb-3 capitalize text-sm font-medium transition ${
-              tab === t
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {t}
-          </button>
-        ))}
+      <Button
+        text={loading ? "Verifying..." : "Save & Verify SMTP"}
+        onClick={saveSMTP}
+        disabled={loading}
+      />
+
+      <div className="text-xs text-gray-500 mt-4">
+        ⚠️ Gmail users must use <b>App Password</b>, not normal password.
       </div>
-
-      {/* Profile */}
-      {tab === "profile" && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4 max-w-xl">
-          <Input label="Name" placeholder="Your name" />
-          <Input label="Email" placeholder="you@email.com" />
-          <div className="pt-2">
-            <Button text="Update Profile" />
-          </div>
-        </div>
-      )}
-
-      {/* SMTP */}
-      {tab === "smtp" && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4 max-w-xl">
-          <Input label="SMTP Host" placeholder="smtp.gmail.com" />
-          <Input label="SMTP Port" placeholder="587" />
-          <Input label="Username" placeholder="email@gmail.com" />
-          <Input label="Password" placeholder="********" />
-
-          <div className="flex gap-3 pt-2">
-            <Button text="Save SMTP" />
-            <Button text="Test SMTP" variant="secondary" />
-          </div>
-        </div>
-      )}
-
-      {/* Email */}
-      {tab === "email" && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4 max-w-xl">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Default Footer
-            </label>
-            <textarea
-              className="w-full border rounded-lg p-3 h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Regards, Team"
-            />
-          </div>
-
-          <label className="flex items-center gap-2 text-sm text-gray-600">
-            <input type="checkbox" className="rounded" />
-            Automatically add unsubscribe link
-          </label>
-
-          <div className="pt-2">
-            <Button text="Save Email Settings" />
-          </div>
-        </div>
-      )}
     </div>
-  );
+  )
 }

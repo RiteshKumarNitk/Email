@@ -17,6 +17,14 @@ import { FileInterceptor } from "@nestjs/platform-express"
 import { JwtAuthGuard } from "../auth/jwt.guard"
 import { EmailQueueService } from "./email-queue.service"
 
+/* ✅ SAFE FILE TYPE (Render + TS compatible) */
+type UploadedFileType = {
+  buffer: Buffer
+  originalname: string
+  mimetype: string
+  size: number
+}
+
 @UseGuards(JwtAuthGuard)
 @Controller("email-queue")
 export class EmailQueueController {
@@ -41,7 +49,7 @@ export class EmailQueueController {
   @UseInterceptors(FileInterceptor("file"))
   async uploadCSV(
     @Req() req,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: UploadedFileType,
     @Query("mode") mode: "append" | "replace" = "append",
   ) {
     if (!file) {

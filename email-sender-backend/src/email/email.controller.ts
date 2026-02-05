@@ -13,6 +13,7 @@ import {
 import { InjectModel } from "@nestjs/mongoose"
 import { Model } from "mongoose"
 import type { Response } from "express"
+import type { Express } from "express";
 
 import { JwtAuthGuard } from "../auth/jwt.guard"
 import { Unsubscribe, UnsubscribeDocument } from "./unsubscribe.schema"

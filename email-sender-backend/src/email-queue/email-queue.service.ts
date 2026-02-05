@@ -12,6 +12,14 @@ import csv from "csvtojson"
 import { EmailQueue, EmailQueueDocument } from "./email-queue.schema"
 import { CampaignsService } from "../campaigns/campaigns.service"
 
+/* ✅ SAFE FILE TYPE (NO Multer / Express dependency) */
+type UploadedFileType = {
+  buffer: Buffer
+  originalname: string
+  mimetype: string
+  size: number
+}
+
 @Injectable()
 export class EmailQueueService {
   private readonly logger = new Logger(EmailQueueService.name)
@@ -36,9 +44,13 @@ export class EmailQueueService {
   /* ================= CSV UPLOAD ================= */
   async processCSV(
     userId: string,
-    file: Express.Multer.File,
+    file: UploadedFileType,
     mode: "append" | "replace" = "append",
   ) {
+    if (!file?.buffer) {
+      throw new BadRequestException("Invalid CSV file")
+    }
+
     const rows = await csv().fromString(file.buffer.toString())
 
     if (mode === "replace") {
@@ -70,7 +82,7 @@ export class EmailQueueService {
         subject: r.subject || "",
         html: r.body_html || "<p>Hello</p>",
         footer: r.footer || "",
-        status: "draft", // 🔥 ONLY draft here
+        status: "draft", // 🔒 ONLY draft here
       }))
 
     if (docs.length) {
@@ -87,7 +99,7 @@ export class EmailQueueService {
   /* ================= UPDATE ONE ================= */
   async update(userId: string, id: string, data: any) {
     return this.model.findOneAndUpdate(
-      { _id: id, userId, status: "draft" }, // 🔒 editable only in draft
+      { _id: id, userId, status: "draft" },
       data,
       { new: true },
     )
@@ -121,13 +133,11 @@ export class EmailQueueService {
       queueCount: rows.length,
     })
 
-    // ✅ attach recipients to campaign
     await this.campaigns.attachRecipients(
       campaign._id.toString(),
       rows.map(r => r.email),
     )
 
-    // ✅ mark queue rows as converted (audit safe)
     await this.model.updateMany(
       { _id: { $in: ids }, userId },
       {
@@ -148,7 +158,7 @@ export class EmailQueueService {
     return this.model.deleteOne({
       _id: id,
       userId,
-      status: "draft", // 🔒 only draft deletable
+      status: "draft",
     })
   }
 

@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException } from "@nestjs/common"
 import * as nodemailer from "nodemailer"
 import { UsersService } from "../users/users.service"
 import { decrypt } from "../common/utils/crypto.util"
+import type { Express } from "express";
 
 @Injectable()
 export class EmailService {

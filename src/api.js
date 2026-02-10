@@ -5,20 +5,26 @@ export const api = async (url, options = {}) => {
     `${import.meta.env.VITE_API_URL}${url}`,
     {
       method: options.method || "GET",
-      body: options.body
-        ? JSON.stringify(options.body)
-        : undefined,
+      body: options.body ? JSON.stringify(options.body) : undefined,
       headers: {
         "Content-Type": "application/json",
         ...(token && { Authorization: `Bearer ${token}` }),
       },
-      credentials: "include", // 🔥 add this
+      credentials: "include",
     }
   )
+
+  const contentType = res.headers.get("content-type")
 
   if (!res.ok) {
     const text = await res.text()
     throw new Error(text)
+  }
+
+  // 🔒 IMPORTANT GUARD
+  if (!contentType || !contentType.includes("application/json")) {
+    const text = await res.text()
+    throw new Error("Expected JSON, got:\n" + text)
   }
 
   return res.json()

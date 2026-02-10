@@ -6,8 +6,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule)
 
 app.enableCors({
-  origin: true,   // 🔥 reflect request origin automatically
-  credentials: true,
+  origin: [
+    "http://localhost:5173",          // local frontend
+    "https://email-ap8g.vercel.app",  // vercel prod
+  ],
+  methods: "GET,POST,PATCH,DELETE,OPTIONS",
+  allowedHeaders: "Content-Type, Authorization",
 })
 
 

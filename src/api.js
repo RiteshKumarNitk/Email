@@ -21,8 +21,7 @@ export const api = async (url, options = {}) => {
     throw new Error(text)
   }
 
-  // 🔒 IMPORTANT GUARD
-  if (!contentType || !contentType.includes("application/json")) {
+  if (!contentType?.includes("application/json")) {
     const text = await res.text()
     throw new Error("Expected JSON, got:\n" + text)
   }

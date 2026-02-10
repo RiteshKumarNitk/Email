@@ -9,6 +9,8 @@ import { GroupsModule } from "./group/groups.module";
 import { SmtpModule } from './smtp/smtp.module'
 import { AuthModule } from "./auth/auth.module";
 import { UsersModule } from "./users/users.module";
+// import { HealthController } from "./health/health.controller"
+import { HealthModule } from "./health/health.module";
 
 @Module({
   imports: [
@@ -20,6 +22,7 @@ import { UsersModule } from "./users/users.module";
     SmtpModule,
     AuthModule,   // 🔥 MUST BE HERE
     UsersModule,
+    HealthModule,
 
     // ✅ FIX
     MongooseModule.forRoot(process.env.MONGO_URI as string),

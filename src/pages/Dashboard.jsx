@@ -35,10 +35,15 @@ function CountUp({ value, duration = 800 }) {
 export default function Dashboard() {
   const [stats, setStats] = useState(null)
 
-  const loadStats = async () => {
+ const loadStats = async () => {
+  try {
     const data = await api("/api/campaigns/stats/dashboard")
     setStats(data)
+  } catch (err) {
+    console.log("Dashboard error:", err.message)
   }
+}
+
 
   useEffect(() => {
     loadStats()

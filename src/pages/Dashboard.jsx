@@ -37,7 +37,7 @@ export default function Dashboard() {
 
  const loadStats = async () => {
   try {
-    const data = await api("/api/campaigns/stats/dashboard")
+    const data = await api("/campaigns/stats/dashboard")
     setStats(data)
   } catch (err) {
     console.log("Dashboard error:", err.message)

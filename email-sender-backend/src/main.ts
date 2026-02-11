@@ -16,14 +16,11 @@ async function bootstrap() {
     }),
   )
 
-  // ✅ CORS
- app.enableCors({
-  origin: [
-    "https://email-ap8g.vercel.app",
-    "https://email-ap8g-git-main-devanshu-mathurs-projects.vercel.app"
-  ],
+app.enableCors({
+  origin: true,
   credentials: true,
 })
+
 
 
   const PORT = process.env.PORT || 8000

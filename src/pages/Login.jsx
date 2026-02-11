@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-import { api } from "../api"   // 👈 ADD THIS
+import { api } from "../api"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -17,16 +17,10 @@ export default function Login() {
     try {
       const data = await api("/auth/login", {
         method: "POST",
-        body: {
-          email,
-          password,
-        },
+        body: { email, password },
       })
 
-      // 🔐 token save
       localStorage.setItem("token", data.access_token)
-
-      // redirect
       navigate("/")
     } catch (err) {
       setError(err.message)
@@ -53,7 +47,7 @@ export default function Login() {
             <label className="text-sm font-medium">Email</label>
             <input
               type="email"
-              className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring"
+              className="w-full mt-1 px-3 py-2 border rounded-lg"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -64,11 +58,21 @@ export default function Login() {
             <label className="text-sm font-medium">Password</label>
             <input
               type="password"
-              className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring"
+              className="w-full mt-1 px-3 py-2 border rounded-lg"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+
+          {/* 🔥 Forgot Password Link */}
+          <div className="text-right text-sm">
+            <Link
+              to="/forgot-password"
+              className="text-blue-600 hover:underline"
+            >
+              Forgot Password?
+            </Link>
           </div>
 
           <button

@@ -9,7 +9,7 @@ async function bootstrap() {
   origin: "https://email-ap8g.vercel.app",  // exact frontend URL
   credentials: true,
   methods: "GET,POST,PATCH,DELETE,OPTIONS",
-  allowedHeaders: "Content-Type, Authorization",
+  allowedHeaders: "Content-Type, Authorization, Accept",
 })
 
 

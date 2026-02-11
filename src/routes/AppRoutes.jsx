@@ -13,6 +13,9 @@ import Queue from "../pages/Queue"
 import Groups from "../pages/Groups"
 import Register from "../pages/Register"
 import Profile from "../pages/Profile"
+import ForgotPassword from "../pages/ForgotPassword"
+
+
 
 export default function AppRoutes() {
   return (
@@ -38,6 +41,8 @@ export default function AppRoutes() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/register" element={<ProtectedRoute><Register /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+       <Route path="/forgot-password" element={<ProtectedRoute><ForgotPassword /></ProtectedRoute>} />
+
 
     </Routes>
   )

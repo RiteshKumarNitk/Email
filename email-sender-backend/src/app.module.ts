@@ -23,6 +23,7 @@ import { HealthModule } from "./health/health.module";
     AuthModule,   // 🔥 MUST BE HERE
     UsersModule,
     HealthModule,
+    // HealthController,
 
     // ✅ FIX
     MongooseModule.forRoot(process.env.MONGO_URI as string),

@@ -15,7 +15,7 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const data = await api("/api/auth/login", {
+      const data = await api("/auth/login", {
         method: "POST",
         body: { email, password },
       })
@@ -23,7 +23,7 @@ export default function Login() {
       localStorage.setItem("token", data.access_token)
       navigate("/")
     } catch (err) {
-      setError(err.message)
+      setError(err.message || "Login failed")
     } finally {
       setLoading(false)
     }
@@ -65,7 +65,6 @@ export default function Login() {
             />
           </div>
 
-          {/* 🔥 Forgot Password Link */}
           <div className="text-right text-sm">
             <Link
               to="/forgot-password"

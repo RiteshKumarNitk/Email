@@ -16,7 +16,7 @@ export default function Register() {
     setLoading(true)
 
     try {
-      const data = await api("/api/auth/register", {
+      const data = await api("/auth/register", {
         method: "POST",
         body: { name, email, password },
       })
@@ -24,7 +24,7 @@ export default function Register() {
       localStorage.setItem("token", data.access_token)
       navigate("/")
     } catch (err) {
-      setError(err.message)
+      setError(err.message || "Registration failed")
     } finally {
       setLoading(false)
     }

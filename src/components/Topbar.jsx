@@ -1,20 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Navigate } from "react-router-dom";
 
 export default function Topbar() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // token delete
-    navigate("/login"); // redirect to login
-     window.location.reload()   // 👈 important for clean reset
+    localStorage.removeItem("token");
+    navigate("/login", { replace: true });
+    window.location.reload();
   };
 
   return (
     <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 relative">
-      {/* Left */}
       <div>
         <h2 className="text-lg font-semibold tracking-tight">
           Email Sender
@@ -24,9 +22,7 @@ export default function Topbar() {
         </p>
       </div>
 
-      {/* Right */}
       <div className="flex items-center gap-4">
-        {/* Notifications */}
         <button
           className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100"
           title="Notifications"
@@ -34,7 +30,6 @@ export default function Topbar() {
           🔔
         </button>
 
-        {/* Profile */}
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
@@ -48,7 +43,6 @@ export default function Topbar() {
             </span>
           </button>
 
-          {/* Dropdown */}
           {open && (
             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-md z-50">
               <div className="px-4 py-3 border-b">

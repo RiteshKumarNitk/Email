@@ -12,7 +12,7 @@ async function bootstrap() {
     allowedHeaders: "Content-Type, Authorization",
   })
 
-  const PORT = process.env.PORT || 4000
+  const PORT = process.env.PORT || 8000
 
   // 🔥 VERY IMPORTANT FOR RENDER
   await app.listen(PORT, "0.0.0.0")

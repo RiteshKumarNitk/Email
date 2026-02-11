@@ -1,5 +1,3 @@
-console.log("API URL:", import.meta.env.VITE_API_URL)
-
 export const api = async (url, options = {}) => {
   const token = localStorage.getItem("token")
 
@@ -16,25 +14,10 @@ export const api = async (url, options = {}) => {
     }
   )
 
-  const contentType = res.headers.get("content-type")
-
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(text)
+    throw new Error(text || "Request failed")
   }
-
-  if (!contentType?.includes("application/json")) {
-    const text = await res.text()
-    throw new Error("Expected JSON, got:\n" + text)
-  }
-  const BASE = import.meta.env.VITE_API_URL
-
-console.log("BASE:", BASE)
-
-if (!BASE) {
-  throw new Error("VITE_API_URL missing")
-}
-
 
   return res.json()
 }

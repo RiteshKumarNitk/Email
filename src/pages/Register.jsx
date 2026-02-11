@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
-console.log("API URL:", import.meta.env.VITE_API_URL)
+import { api } from "../api"
 
 export default function Register() {
   const navigate = useNavigate()
@@ -16,19 +16,12 @@ export default function Register() {
     setLoading(true)
 
     try {
-      const res = await fetch("http://localhost:8000/auth/register", {
+      const data = await api("/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: { name, email, password },
       })
 
-      const data = await res.json()
-
-      if (!res.ok) throw new Error(data.message || "Registration failed")
-
-      // optional: auto login after register
       localStorage.setItem("token", data.access_token)
-
       navigate("/")
     } catch (err) {
       setError(err.message)
@@ -55,7 +48,7 @@ export default function Register() {
             <label className="text-sm font-medium">Name</label>
             <input
               type="text"
-              className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring"
+              className="w-full mt-1 px-3 py-2 border rounded-lg"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
@@ -66,7 +59,7 @@ export default function Register() {
             <label className="text-sm font-medium">Email</label>
             <input
               type="email"
-              className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring"
+              className="w-full mt-1 px-3 py-2 border rounded-lg"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -77,7 +70,7 @@ export default function Register() {
             <label className="text-sm font-medium">Password</label>
             <input
               type="password"
-              className="w-full mt-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring"
+              className="w-full mt-1 px-3 py-2 border rounded-lg"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -93,9 +86,10 @@ export default function Register() {
           </button>
         </form>
 
-        {/* BACK TO LOGIN */}
         <div className="mt-6 text-center text-sm">
-          <span className="text-gray-600">Already have an account?</span>{" "}
+          <span className="text-gray-600">
+            Already have an account?
+          </span>{" "}
           <Link
             to="/login"
             className="text-blue-600 font-medium hover:underline"

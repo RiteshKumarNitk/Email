@@ -36,7 +36,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
 
   const loadStats = async () => {
-    const data = await api("/campaigns/stats/dashboard")
+    const data = await api("/api/campaigns/stats/dashboard")
     setStats(data)
   }
 

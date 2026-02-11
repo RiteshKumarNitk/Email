@@ -1,19 +1,23 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import MainLayout from "./layouts/MainLayout"
-import AppRoutes from "./routes/AppRoutes"
 import Login from "./pages/Login"
 
 export default function App() {
+  const token = localStorage.getItem("token")
+
   return (
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/login"
+          element={token ? <Navigate to="/" /> : <Login />}
+        />
 
-        {/* Protected with layout */}
+        {/* Protected */}
         <Route
           path="/*"
-          element={<MainLayout />}
+          element={token ? <MainLayout /> : <Navigate to="/login" />}
         />
       </Routes>
     </BrowserRouter>

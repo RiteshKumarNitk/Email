@@ -2,6 +2,9 @@ import { useEffect, useState } from "react"
 import { api } from "../api"
 import { motion } from "framer-motion"
 
+console.log("Dashboard mounted")
+
+
 /* 🔢 COUNT UP */
 function CountUp({ value, duration = 800 }) {
   const [count, setCount] = useState(0)

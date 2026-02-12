@@ -21,49 +21,51 @@ export default function Settings() {
   };
 
   const saveSMTP = async () => {
-    setLoading(true);
-    setMessage(null);
+  setLoading(true);
+  setMessage(null);
 
-    if (!form.host.trim() || !form.port.trim() || !form.user.trim() || !form.pass.trim()) {
-      setMessage({
-        type: "error",
-        text: "Sab fields bhar do",
-      });
-      setLoading(false);
-      return;
-    }
+  // Validation
+  if (!form.host.trim() || !form.port.trim() || !form.user.trim() || !form.pass.trim()) {
+    setMessage({
+      type: "error",
+      text: "Sab fields bhar do",
+    });
+    setLoading(false);
+    return;
+  }
 
-    const payload = {
-      host: form.host.trim(),
-      port: Number(form.port.trim()),
-      user: form.user.trim(),
-      pass: form.pass.trim(),
-    };
-
-    console.log("Sending payload:", payload);
-
-    try {
-      await api("/smtp", {
-        method: "POST",
-        body: payload,
-      });
-
-      setMessage({
-        type: "success",
-        text: "✅ SMTP saved & verified!",
-      });
-
-      setForm({ ...form, pass: "" });
-    } catch (err) {
-      console.error("SMTP save error:", err);
-      setMessage({
-        type: "error",
-        text: err.message || "SMTP setup failed",
-      });
-    } finally {
-      setLoading(false);
-    }
+  // Payload object bhej (stringify mat kar – api.js karega)
+  const payload = {
+    host: form.host.trim(),
+    port: Number(form.port.trim()),
+    user: form.user.trim(),
+    pass: form.pass.trim(),
   };
+
+  console.log("Sending payload:", payload); // check karega
+
+  try {
+    await api("/smtp", {
+      method: "POST",
+      body: payload, // ← object direct (no JSON.stringify)
+    });
+
+    setMessage({
+      type: "success",
+      text: "✅ SMTP saved & verified!",
+    });
+
+    setForm({ ...form, pass: "" });
+  } catch (err) {
+    console.error("SMTP error:", err);
+    setMessage({
+      type: "error",
+      text: err.message || "SMTP save failed – check console/network",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="p-8 max-w-xl space-y-6">

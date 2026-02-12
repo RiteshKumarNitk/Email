@@ -1,47 +1,60 @@
-import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { api } from "../api"
+// src/pages/Register.jsx
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { api } from "../api";
 
 export default function Register() {
-  const navigate = useNavigate()
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedName || !trimmedEmail || !trimmedPassword) {
+      setError("Sab fields bhar do bhai");
+      setLoading(false);
+      return;
+    }
 
     try {
       const data = await api("/auth/register", {
         method: "POST",
-        body: { name, email, password },
-      })
+        body: { name: trimmedName, email: trimmedEmail, password: trimmedPassword },
+      });
 
-      localStorage.setItem("token", data.access_token)
-      navigate("/")
+      // Consistent token key – same as Login
+      localStorage.setItem("token", data.access_token || data.token);
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(err.message || "Registration failed")
+      console.error("Registration failed:", err);
+      let msg = err.message || "Registration nahi ho payi";
+      // Agar backend JSON error bhej raha to better message
+      try {
+        const parsed = JSON.parse(err.message);
+        msg = parsed.detail || parsed.message || msg;
+      } catch {}
+      setError(msg);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100">
       <div className="w-full max-w-md bg-white rounded-xl shadow p-8">
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          Create Account
-        </h1>
+        <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
 
-        {error && (
-          <div className="mb-4 text-red-600 text-sm text-center">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 text-red-600 text-sm text-center">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -87,17 +100,12 @@ export default function Register() {
         </form>
 
         <div className="mt-6 text-center text-sm">
-          <span className="text-gray-600">
-            Already have an account?
-          </span>{" "}
-          <Link
-            to="/login"
-            className="text-blue-600 font-medium hover:underline"
-          >
+          <span className="text-gray-600">Already have an account? </span>
+          <Link to="/login" className="text-blue-600 font-medium hover:underline">
             Login
           </Link>
         </div>
       </div>
     </div>
-  )
+  );
 }

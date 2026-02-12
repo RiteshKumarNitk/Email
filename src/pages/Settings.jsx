@@ -5,7 +5,7 @@ import Button from "../components/Button";
 export default function Settings() {
   const [form, setForm] = useState({
     host: "smtp.gmail.com",
-    port: "587",       // string rakha taaki input easy rahe (baad mein Number kar lenge)
+    port: "587", // string rakha input ke liye (587 TLS ke liye default)
     user: "",
     pass: "",
   });
@@ -24,7 +24,7 @@ export default function Settings() {
     setLoading(true);
     setMessage(null);
 
-    // Frontend validation
+    // Validation
     if (!form.host.trim() || !form.port.trim() || !form.user.trim() || !form.pass.trim()) {
       setMessage({
         type: "error",
@@ -34,33 +34,42 @@ export default function Settings() {
       return;
     }
 
-    // Clean payload
     const payload = {
       host: form.host.trim(),
-      port: Number(form.port.trim()), // yahan string se number bana rahe hain
+      port: Number(form.port.trim()),
       user: form.user.trim(),
       pass: form.pass.trim(),
     };
 
-    console.log("Sending payload:", payload); // debugging ke liye
+    console.log("Sending SMTP payload:", payload);
 
     try {
       await api("/smtp", {
         method: "POST",
-        body: payload, // api.js mein yeh JSON.stringify ho jayega
+        body: payload, // object bhej – api.js stringify karega
       });
 
       setMessage({
         type: "success",
-        text: "✅ SMTP settings saved & verified successfully!",
+        text: "✅ SMTP verified & saved successfully!",
       });
 
-      setForm({ ...form, pass: "" }); // password clear kar do
+      setForm({ ...form, pass: "" });
     } catch (err) {
       console.error("SMTP save error:", err);
+      let errorText = err.message || "SMTP setup failed";
+
+      if (errorText.includes("JSON")) {
+        errorText = "Invalid data format – check all fields";
+      } else if (errorText.includes("400")) {
+        errorText = "Invalid SMTP details – check host/port/user/pass";
+      } else if (errorText.includes("500")) {
+        errorText = "Server error – check backend logs on Render";
+      }
+
       setMessage({
         type: "error",
-        text: err.message || "SMTP setup failed. Check console.",
+        text: errorText,
       });
     } finally {
       setLoading(false);
@@ -77,10 +86,10 @@ export default function Settings() {
 
       {message && (
         <div
-          className={`p-4 rounded text-sm ${
+          className={`p-4 rounded text-sm border ${
             message.type === "success"
-              ? "bg-green-100 text-green-700 border border-green-200"
-              : "bg-red-100 text-red-700 border border-red-200"
+              ? "bg-green-50 border-green-200 text-green-700"
+              : "bg-red-50 border-red-200 text-red-700"
           }`}
         >
           {message.text}
@@ -142,7 +151,7 @@ export default function Settings() {
       />
 
       <div className="text-xs text-gray-500 mt-6 space-y-1">
-        <p>⚠️ Gmail users: Use <strong>App Password</strong> (not normal password).</p>
+        <p>⚠️ Gmail users: Use <strong>App Password</strong>, not normal password.</p>
         <p>Generate here: <a 
           href="https://myaccount.google.com/apppasswords" 
           target="_blank" 

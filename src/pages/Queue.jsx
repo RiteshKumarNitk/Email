@@ -129,29 +129,30 @@ export default function Queue() {
 
   /* ===== CSV UPLOAD ===== */
   const handleUpload = async () => {
-    if (!file) {
-      fileRef.current.click()
-      return
-    }
-
-    const formData = new FormData()
-    formData.append("file", file)
-
-    await fetch(
-      `http://localhost:8000/email-queue/upload?mode=${importMode}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: formData,
-      },
-    )
-
-    setFile(null)
-    fileRef.current.value = ""
-    load()
+  if (!file) {
+    fileRef.current.click()
+    return
   }
+
+  const formData = new FormData()
+  formData.append("file", file)
+
+  await fetch(
+    `https://email-sender-s5wm.onrender.com/email-queue/upload?mode=${importMode}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: formData,
+    },
+  )
+
+  setFile(null)
+  fileRef.current.value = ""
+  load()
+}
+
 
   const deleteOne = async (id) => {
     if (!confirm("Delete email?")) return

@@ -4,16 +4,27 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import {
+    Home,
+    PenSquare,
+    Megaphone,
+    LayoutTemplate,
+    Clock,
+    Users,
+    Folder,
+    Settings,
+    Menu,
+    Plus
+} from "lucide-react";
 
 const NAV_ITEMS = [
-    { label: "Dashboard", path: "/", icon: "🏠" },
-    { label: "Compose", path: "/compose", icon: "✍️" },
-    { label: "Campaigns", path: "/campaigns", icon: "📢" },
-    { label: "Templates", path: "/templates", icon: "📄" },
-    { label: "Queue", path: "/queue", icon: "🕒" },
-    { label: "Contacts", path: "/contacts", icon: "👥" },
-    { label: "Groups", path: "/groups", icon: "🗂️" },
-    { label: "Settings", path: "/settings", icon: "⚙️" },
+    { label: "Dashboard", path: "/", icon: Home },
+    { label: "Campaigns", path: "/campaigns", icon: Megaphone },
+    { label: "Templates", path: "/templates", icon: LayoutTemplate },
+    { label: "Queue", path: "/queue", icon: Clock },
+    { label: "Contacts", path: "/contacts", icon: Users },
+    { label: "Groups", path: "/groups", icon: Folder },
+    { label: "Settings", path: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -25,54 +36,64 @@ export default function Sidebar() {
 
     return (
         <aside
-            className={`${collapsed ? "w-20" : "w-64"
-                } bg-gray-900 text-white min-h-screen flex flex-col transition-all duration-300 stick top-0`}
+            className={`${collapsed ? "w-20" : "w-64"} bg-[#f6f8fc] h-screen sticky top-0 flex flex-col transition-all duration-300 border-r border-gray-200 z-20`}
         >
-            {/* Logo */}
-            <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-                {!collapsed && (
-                    <div>
-                        <h1 className="text-lg font-bold">Email Sender</h1>
-                        <p className="text-xs text-gray-400">Campaign Manager</p>
-                    </div>
-                )}
-
+            {/* Header / Logo */}
+            <div className="h-16 flex items-center px-4 gap-4">
                 <button
                     onClick={() => setCollapsed(!collapsed)}
-                    className="text-gray-400 hover:text-white"
-                    title="Toggle sidebar"
+                    className="p-2 rounded-full hover:bg-gray-200 text-gray-600 transition"
                 >
-                    {collapsed ? "➡️" : "⬅️"}
+                    <Menu size={20} />
                 </button>
+
+                {!collapsed && (
+                    <div className="flex items-center gap-2">
+                        <img src="https://ssl.gstatic.com/ui/v1/icons/mail/rfr/logo_gmail_lockup_default_1x_r2.png" alt="Logo" className="h-6 opacity-80" />
+                        {/* Fallback if image fails or for custom brand */}
+                        {/* <span className="text-xl font-medium text-gray-600">GmailClone</span> */}
+                    </div>
+                )}
+            </div>
+
+            {/* Compose Button */}
+            <div className="px-2 py-4">
+                <Link
+                    href="/compose"
+                    className={`flex items-center gap-3 bg-[#c2e7ff] text-[#001d35] hover:shadow-md transition-all rounded-2xl p-4 w-fit ${collapsed ? "justify-center px-4" : "px-6"}`}
+                >
+                    <PenSquare size={24} />
+                    {!collapsed && <span className="font-semibold">Compose</span>}
+                </Link>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-3 space-y-1">
-                {NAV_ITEMS.map((item) => (
-                    <Link
-                        key={item.path}
-                        href={item.path}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition ${isActive(item.path)
-                                ? "bg-blue-600 text-white"
-                                : "text-gray-300 hover:bg-gray-800 hover:text-white"
-                            }`}
-                    >
-                        <span className="text-lg">{item.icon}</span>
-                        {!collapsed && (
-                            <span className="text-sm font-medium">
-                                {item.label}
-                            </span>
-                        )}
-                    </Link>
-                ))}
+            <nav className="flex-1 px-2 space-y-1">
+                {NAV_ITEMS.map((item) => {
+                    const active = isActive(item.path);
+                    return (
+                        <Link
+                            key={item.path}
+                            href={item.path}
+                            title={collapsed ? item.label : ""}
+                            className={`flex items-center gap-4 px-4 py-2.5 rounded-full transition-colors ${active
+                                ? "bg-[#d3e3fd] text-[#001d35] font-semibold"
+                                : "text-gray-700 hover:bg-gray-200"
+                                }`}
+                        >
+                            <item.icon size={20} className={active ? "text-[#001d35]" : "text-gray-600"} />
+                            {!collapsed && (
+                                <span className="text-sm">
+                                    {item.label}
+                                </span>
+                            )}
+                            {active && !collapsed && (
+                                <span className="ml-auto text-xs font-bold"></span>
+                            )}
+                        </Link>
+                    );
+                })}
             </nav>
-
-            {/* Footer */}
-            {!collapsed && (
-                <div className="p-4 border-t border-gray-800 text-xs text-gray-400">
-                    v1.0 • UI Ready
-                </div>
-            )}
         </aside>
     );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { api } from "../api"
+import { api } from "@/lib/api"
 
 export default function ContactSelector({ onSelect, onClose }) {
   const [contacts, setContacts] = useState([])
@@ -88,7 +88,7 @@ export default function ContactSelector({ onSelect, onClose }) {
         >
           {/* HEADER */}
           <div className="p-6 border-b flex justify-between items-center">
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-xl font-semibold text-gray-900">
               Select Recipients
             </h2>
             <button
@@ -106,12 +106,12 @@ export default function ContactSelector({ onSelect, onClose }) {
               placeholder="Search contacts..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 bg-white"
             />
 
             {/* GROUPS */}
             <div>
-              <h3 className="text-sm font-semibold mb-3">
+              <h3 className="text-sm font-semibold mb-3 text-gray-900">
                 Groups
               </h3>
 
@@ -129,7 +129,7 @@ export default function ContactSelector({ onSelect, onClose }) {
                           checked={selectedGroups.has(g._id)}
                           onChange={() => toggleGroup(g._id)}
                         />
-                        <span className="font-medium text-sm">
+                        <span className="font-medium text-sm text-gray-900">
                           {g.name}
                         </span>
                         <span className="text-xs text-gray-400">
@@ -170,7 +170,7 @@ export default function ContactSelector({ onSelect, onClose }) {
                                 }
                               />
                               <div>
-                                <div>{c.email}</div>
+                                <div className="text-gray-900">{c.email}</div>
                                 {c.name && (
                                   <div className="text-xs text-gray-400">
                                     {c.name}
@@ -193,7 +193,7 @@ export default function ContactSelector({ onSelect, onClose }) {
 
             {/* ALL CONTACTS */}
             <div>
-              <h3 className="text-sm font-semibold mb-2">
+              <h3 className="text-sm font-semibold mb-2 text-gray-900">
                 All Contacts
               </h3>
 
@@ -209,7 +209,7 @@ export default function ContactSelector({ onSelect, onClose }) {
                       onChange={() => toggleContact(c._id)}
                     />
                     <div>
-                      <div className="text-sm">{c.email}</div>
+                      <div className="text-sm text-gray-900">{c.email}</div>
                       {c.name && (
                         <div className="text-xs text-gray-400">
                           {c.name}
@@ -239,7 +239,7 @@ export default function ContactSelector({ onSelect, onClose }) {
             <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded bg-white border"
+                className="px-4 py-2 rounded bg-white border text-gray-900"
               >
                 Cancel
               </button>

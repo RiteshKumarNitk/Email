@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { api } from "../api"
+import { api } from "@/lib/api"
 
 export default function RescheduleModal({ campaignId, onClose, onDone }) {
   const [date, setDate] = useState("")

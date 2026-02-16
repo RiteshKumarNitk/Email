@@ -170,13 +170,13 @@ export default function Campaigns() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search subject..."
-                    className="px-4 py-2 border rounded-lg w-64 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="px-4 py-2 border rounded-lg w-64 focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 bg-white"
                 />
 
                 <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                    className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-gray-900 bg-white"
                 >
                     <option value="all">All Status</option>
                     <option value="draft">Draft</option>

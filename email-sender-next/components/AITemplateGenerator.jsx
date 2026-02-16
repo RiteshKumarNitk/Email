@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { api } from "../api"
+import { api } from "@/lib/api"
 
 export default function AITemplateGenerator({ onUse }) {
   const [prompt, setPrompt] = useState("")

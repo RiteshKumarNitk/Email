@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Search, SlidersHorizontal, Settings, HelpCircle, Grip, Bell, LogOut } from "lucide-react";
 
 export default function Topbar() {
     const [open, setOpen] = useState(false);
@@ -15,67 +16,76 @@ export default function Topbar() {
     };
 
     return (
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 relative">
-            <div>
-                <h2 className="text-lg font-semibold tracking-tight text-gray-800">
-                    Email Sender
-                </h2>
-                <p className="text-xs text-gray-500">
-                    Campaign Manager
-                </p>
+        <header className="h-16 bg-[#f6f8fc] flex items-center justify-between px-4 sticky top-0 z-10 w-full">
+            {/* Search Bar */}
+            <div className="flex-1 max-w-2xl mx-auto">
+                <div className="bg-[#eaf1fb] flex items-center px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-shadow focus-within:bg-white focus-within:shadow-md">
+                    <Search className="text-gray-500 mr-3" size={20} />
+                    <input
+                        type="text"
+                        placeholder="Search mail"
+                        className="bg-transparent outline-none w-full text-gray-900 placeholder-gray-500"
+                    />
+                    <button className="p-2 hover:bg-gray-200 rounded-full ml-2">
+                        <SlidersHorizontal size={18} className="text-gray-600" />
+                    </button>
+                </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Right Actions */}
+            <div className="flex items-center gap-2 pl-4">
+                <button className="p-2 hover:bg-gray-200 rounded-full text-gray-600" title="Help">
+                    <HelpCircle size={24} />
+                </button>
                 <button
-                    className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100"
-                    title="Notifications"
+                    onClick={() => router.push("/settings")}
+                    className="p-2 hover:bg-gray-200 rounded-full text-gray-600"
+                    title="Settings"
                 >
-                    🔔
+                    <Settings size={24} />
+                </button>
+                <button className="p-2 hover:bg-gray-200 rounded-full text-gray-600" title="Apps">
+                    <Grip size={24} />
                 </button>
 
-                <div className="relative">
+                <div className="relative ml-2">
                     <button
                         onClick={() => setOpen(!open)}
-                        className="flex items-center gap-2 hover:bg-gray-100 px-2 py-1 rounded-lg"
+                        className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-600 text-white font-semibold text-lg hover:ring-4 hover:ring-gray-200 transition"
                     >
-                        <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
-                            D
-                        </div>
-                        <span className="hidden sm:block text-sm text-gray-700">
-                            User
-                        </span>
+                        R
                     </button>
 
                     {open && (
-                        <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-md z-50">
-                            <div className="px-4 py-3 border-b">
-                                <p className="text-sm font-medium text-gray-800">Account</p>
-                                <p className="text-xs text-gray-500">
-                                    user@email.com
-                                </p>
+                        <div className="absolute right-0 mt-2 w-72 bg-[#e9eef6] rounded-[28px] p-4 shadow-xl z-50 border border-gray-100 flex flex-col items-center">
+                            <div className="text-center mb-4">
+                                <div className="w-16 h-16 bg-purple-600 rounded-full text-white flex items-center justify-center text-3xl font-medium mx-auto mb-2">
+                                    R
+                                </div>
+                                <p className="text-gray-800 font-semibold text-lg">Ritesh User</p>
+                                <p className="text-gray-500 text-sm">user@example.com</p>
                             </div>
 
-                            <div className="py-1 text-sm">
-                                <button
-                                    onClick={() => router.push("/profile")}
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700"
-                                >
-                                    Profile
-                                </button>
+                            <button
+                                onClick={() => router.push("/profile")}
+                                className="border border-gray-400 text-gray-700 px-6 py-2 rounded-full hover:bg-gray-100 transition text-sm font-medium mb-4"
+                            >
+                                Manage your Account
+                            </button>
 
-                                <button
-                                    onClick={() => router.push("/settings")}
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700"
-                                >
-                                    Settings
-                                </button>
+                            <div className="w-full border-t border-gray-300 mb-4"></div>
 
-                                <button
-                                    onClick={handleLogout}
-                                    className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
-                                >
-                                    Logout
-                                </button>
+                            <button
+                                onClick={handleLogout}
+                                className="bg-white hover:bg-gray-50 text-gray-800 border px-6 py-2.5 rounded-lg text-sm font-medium transition flex items-center gap-2"
+                            >
+                                <LogOut size={16} /> Sign out
+                            </button>
+
+                            <div className="mt-4 text-xs text-gray-500 flex gap-4">
+                                <span>Privacy Policy</span>
+                                <span>•</span>
+                                <span>Terms of Service</span>
                             </div>
                         </div>
                     )}

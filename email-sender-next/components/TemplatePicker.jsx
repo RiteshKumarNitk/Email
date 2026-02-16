@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { api } from "../api"
+import { api } from "@/lib/api"
 import { motion, AnimatePresence } from "framer-motion"
 
 export default function TemplatePicker({ onSelect, onClose }) {

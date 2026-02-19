@@ -41,19 +41,7 @@ export default function Campaigns() {
         load();
     }, []);
 
-    // 🔥 auto refresh ONLY when no modal is open
-    useEffect(() => {
-        if (
-            previewCampaign ||
-            analyticsCampaign ||
-            showContacts ||
-            scheduleCampaign
-        )
-            return;
 
-        const i = setInterval(load, 5000);
-        return () => clearInterval(i);
-    }, [previewCampaign, analyticsCampaign, showContacts, scheduleCampaign]);
 
     // 🔥 outside click close menu
     useEffect(() => {
@@ -155,7 +143,16 @@ export default function Campaigns() {
         <div className="space-y-6">
             {/* HEADER */}
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-800">Campaigns</h1>
+                <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold text-gray-800">Campaigns</h1>
+                    <button
+                        onClick={load}
+                        className="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition text-sm"
+                        title="Refresh list"
+                    >
+                        ↻
+                    </button>
+                </div>
                 <button
                     onClick={() => setShowTemplates(true)}
                     className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition"

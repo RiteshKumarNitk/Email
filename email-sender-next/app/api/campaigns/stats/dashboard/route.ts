@@ -1,27 +1,20 @@
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Campaign from '@/models/Campaign';
-import jwt from 'jsonwebtoken';
+import { verifyToken } from '@/lib/auth';
+import { ApiResponse } from '@/lib/api-response';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
         await dbConnect();
 
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        const user = await verifyToken(req);
+        if (!user) {
+            return ApiResponse.unauthorized();
         }
 
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
-
-        const userId = decoded.id;
+        const userId = user.id;
 
         const totalCampaigns = await Campaign.countDocuments({ userId });
 
@@ -45,8 +38,8 @@ export async function GET(req: Request) {
             }
         };
 
-        return NextResponse.json(result);
+        return ApiResponse.success(result);
     } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+        return ApiResponse.error("Failed to fetch dashboard stats", error, 500);
     }
 }

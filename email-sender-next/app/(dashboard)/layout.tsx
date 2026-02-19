@@ -1,35 +1,14 @@
-
 "use client";
 
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
-
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            router.push("/login");
-        } else {
-            setLoading(false);
-        }
-    }, [router]);
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <p className="text-gray-500 animate-pulse font-medium">Authenticating...</p>
-            </div>
-        );
-    }
+    // Middleware handles protection now.
 
     return (
         <div className="flex min-h-screen bg-white">

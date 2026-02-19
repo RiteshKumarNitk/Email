@@ -1,40 +1,40 @@
 
-import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import Campaign from '@/models/Campaign';
-// import { auth } from '@/auth'; // You would need proper middleware or server-sida auth check
+import { NextRequest, NextResponse } from "next/server";
+import { CampaignService } from "@/services/campaign.service";
+import { ApiResponse } from "@/lib/api-response";
+import { verifyToken } from "@/lib/auth";
+import { CreateCampaignSchema } from "@/validation/campaign.schema";
 
-export async function POST(req: Request) {
-    await dbConnect();
+export async function GET(req: NextRequest) {
     try {
-        const { name, subject, html, userId, status } = await req.json();
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
-        // In a real app, verify user session here 
-        if (!userId) {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        }
+        const { searchParams } = new URL(req.url);
+        const query = {
+            page: searchParams.get('page') || '1',
+            limit: searchParams.get('limit') || '10',
+            search: searchParams.get('search') || undefined
+        };
 
-        const newCampaign = await Campaign.create({
-            name,
-            subject,
-            html,
-            userId,
-            status
-        });
-
-        return NextResponse.json(newCampaign, { status: 201 });
+        const result = await CampaignService.list(user.id, query);
+        return ApiResponse.success(result, "Campaigns fetched successfully");
     } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+        return ApiResponse.error("Failed to fetch campaigns", error);
     }
 }
 
-export async function GET(req: Request) {
-    await dbConnect();
+export async function POST(req: NextRequest) {
     try {
-        // For now fetching all, but should be filtered by user
-        const campaigns = await Campaign.find({}).sort({ createdAt: -1 });
-        return NextResponse.json(campaigns);
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
+
+        const body = await req.json();
+        const validatedData = CreateCampaignSchema.parse(body);
+
+        const campaign = await CampaignService.create(user.id, validatedData);
+        return ApiResponse.success(campaign, "Campaign created successfully", 201);
     } catch (error: any) {
-        return NextResponse.json({ message: error.message }, { status: 500 });
+        return ApiResponse.error("Failed to create campaign", error);
     }
 }

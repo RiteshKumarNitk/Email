@@ -9,10 +9,16 @@ export default function Topbar() {
     const [open, setOpen] = useState(false);
     const router = useRouter();
 
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        router.push("/login");
-        router.refresh();
+    const handleLogout = async () => {
+        try {
+            // Hit the logout API to clear the cookie
+            await fetch('/api/auth/logout', { method: 'POST' });
+            localStorage.removeItem("token"); // Cleanup legacy
+            router.push("/login");
+            router.refresh();
+        } catch (error) {
+            console.error("Logout failed", error);
+        }
     };
 
     return (

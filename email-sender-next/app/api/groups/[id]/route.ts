@@ -1,80 +1,46 @@
 
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Group from "@/models/Group";
+import Contact from "@/models/Contact"; // Assuming contact model exists
+import { verifyToken } from "@/lib/auth";
+import { ApiResponse } from "@/lib/api-response";
 
-export async function DELETE(
-    req: Request,
-    { params }: { params: { id: string } }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
     try {
         await dbConnect();
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
-        const { id } = params;
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
+        const { id } = await params;
+        const { name } = await req.json();
 
-        const result = await Group.findOneAndDelete({ _id: id, userId: decoded.id });
-        if (!result) {
-            return NextResponse.json({ message: "Group not found" }, { status: 404 });
-        }
+        // Ensure user owns the group
+        const group = await Group.findOne({ _id: id, userId: user.id });
+        if (!group) return ApiResponse.notFound("Group not found");
 
-        return NextResponse.json({ message: "Deleted" });
+        if (name) group.name = name;
+        await group.save();
+
+        return ApiResponse.success(group);
     } catch (error: any) {
-        return NextResponse.json(
-            { message: "Delete failed", error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Update failed", error);
     }
 }
 
-export async function PATCH(
-    req: Request,
-    { params }: { params: { id: string } }
-) {
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
     try {
         await dbConnect();
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
-        const { id } = params;
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
+        const { id } = await params;
+        const result = await Group.deleteOne({ _id: id, userId: user.id });
 
-        const { name } = await req.json();
+        if (result.deletedCount === 0) return ApiResponse.notFound("Group not found");
 
-        const group = await Group.findOneAndUpdate(
-            { _id: id, userId: decoded.id },
-            { name },
-            { new: true }
-        );
-
-        if (!group) {
-            return NextResponse.json({ message: "Group not found" }, { status: 404 });
-        }
-
-        return NextResponse.json(group);
+        return ApiResponse.success(null, "Group deleted");
     } catch (error: any) {
-        return NextResponse.json(
-            { message: "Update failed", error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Delete failed", error);
     }
 }

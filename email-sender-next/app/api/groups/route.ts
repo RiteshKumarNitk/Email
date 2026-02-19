@@ -1,68 +1,43 @@
 
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Group from "@/models/Group";
+import { verifyToken } from "@/lib/auth";
+import { ApiResponse } from "@/lib/api-response";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
         await dbConnect();
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
-
-        const groups = await Group.find({ userId: decoded.id }).populate("contacts");
-        return NextResponse.json(groups);
+        const groups = await Group.find({ userId: user.id }).populate("contacts");
+        return ApiResponse.success(groups);
     } catch (error: any) {
-        return NextResponse.json(
-            { message: "Fetch failed", error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Fetch failed", error, 500);
     }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         await dbConnect();
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
-
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
         const { name } = await req.json();
 
         if (!name) {
-            return NextResponse.json({ message: "Name required" }, { status: 400 });
+            return ApiResponse.error("Name required", null, 400);
         }
 
         const group = await Group.create({
-            userId: decoded.id,
+            userId: user.id,
             name,
             contacts: [], // initially empty
         });
 
-        return NextResponse.json(group, { status: 201 });
+        return ApiResponse.success(group, "Group created", 201);
     } catch (error: any) {
-        return NextResponse.json(
-            { message: "Create failed", error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Create failed", error, 500);
     }
 }

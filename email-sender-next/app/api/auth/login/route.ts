@@ -1,55 +1,27 @@
 
-import { NextResponse } from 'next/server';
-import dbConnect from '@/lib/db';
-import User from '@/models/User';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { NextRequest, NextResponse } from "next/server";
+import { loginSchema } from "@/validation/auth.schema";
+import { AuthService } from "@/services/auth.service";
+import { ApiResponse } from "@/lib/api-response";
+import { setAuthCookie } from "@/lib/auth";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_key'; // CHANGE THIS IN PRODUCTION
-
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
-        await dbConnect();
-        const { email, password } = await req.json();
+        const body = await req.json();
 
-        if (!email || !password) {
-            return NextResponse.json(
-                { message: 'All fields are required' },
-                { status: 400 }
-            );
-        }
+        // 1. Validate Input
+        const validatedData = loginSchema.parse(body);
 
-        const user = await User.findOne({ email });
-        if (!user) {
-            return NextResponse.json(
-                { message: 'Invalid credentials' },
-                { status: 401 }
-            );
-        }
+        // 2. Call Service
+        const { token, user } = await AuthService.login(validatedData);
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return NextResponse.json(
-                { message: 'Invalid credentials' },
-                { status: 401 }
-            );
-        }
+        // 3. Set Cookie & Respond
+        const response = ApiResponse.success({ user, token }, "Login successful");
+        console.log("Login Success, Setting Cookie for user:", user.email);
+        await setAuthCookie(response, token);
 
-        const token = jwt.sign(
-            { userId: user._id, email: user.email },
-            JWT_SECRET,
-            { expiresIn: '7d' }
-        );
-
-        return NextResponse.json({
-            message: 'Login successful',
-            token,
-            user: { id: user._id, name: user.name, email: user.email }
-        });
+        return response;
     } catch (error: any) {
-        return NextResponse.json(
-            { message: 'Internal Server Error', error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Login failed", error);
     }
 }

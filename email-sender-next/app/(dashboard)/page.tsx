@@ -47,9 +47,8 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
+        console.log("Dashboard mounted");
         loadStats();
-        const i = setInterval(loadStats, 10000);
-        return () => clearInterval(i);
     }, []);
 
     if (!stats) return <p className="p-6 text-gray-500">Loading Dashboard Stats...</p>;
@@ -81,13 +80,22 @@ export default function Dashboard() {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
+                className="flex justify-between items-center"
             >
-                <h1 className="text-3xl font-semibold text-gray-900">
-                    Dashboard Overview
-                </h1>
-                <p className="text-gray-500 mt-1">
-                    Live email system overview (auto refresh enabled)
-                </p>
+                <div>
+                    <h1 className="text-3xl font-semibold text-gray-900">
+                        Dashboard Overview
+                    </h1>
+                    <p className="text-gray-500 mt-1">
+                        Live email system overview
+                    </p>
+                </div>
+                <button
+                    onClick={loadStats}
+                    className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition text-sm font-medium"
+                >
+                    ↻ Refresh Stats
+                </button>
             </motion.div>
 
             {/* STATS */}
@@ -152,7 +160,7 @@ export default function Dashboard() {
 
                     <div className="mt-6 flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-emerald-700 text-sm font-semibold w-fit">
                         <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                        Syncing every 10s
+                        Active
                     </div>
                 </div>
             </div>

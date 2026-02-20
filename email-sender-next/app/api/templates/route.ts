@@ -6,7 +6,7 @@ import Template from '@/models/Template';
 export async function POST(req: Request) {
     try {
         await dbConnect();
-        const { name, subject, html, category } = await req.json();
+        const { name, subject, html, category, design } = await req.json();
 
         if (!name || !subject || !html) {
             return NextResponse.json(
@@ -20,6 +20,7 @@ export async function POST(req: Request) {
             subject,
             html,
             category,
+            design,
         });
 
         return NextResponse.json(template, { status: 201 });

@@ -16,6 +16,7 @@ export interface ITemplate extends Document {
     clicks: number;
     status: "draft" | "active" | "archived";
     createdBy?: string;
+    design?: string; // JSON string for drag-and-drop editor
 }
 
 const TemplateSchema = new Schema<ITemplate>(
@@ -23,6 +24,7 @@ const TemplateSchema = new Schema<ITemplate>(
         name: { type: String, required: true },
         subject: { type: String, required: true },
         html: { type: String, required: true },
+        design: { type: String }, // JSON string
         category: { type: String, default: "general" },
         favorite: { type: Boolean, default: false },
         variantOf: { type: String, default: null },

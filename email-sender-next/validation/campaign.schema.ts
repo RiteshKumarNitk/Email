@@ -9,7 +9,8 @@ export const CreateCampaignSchema = z.object({
     scheduledAt: z.string().datetime().optional(), // ISO string
 
     recipients: z.array(z.string().email()).optional(),
-    // Or handle recipient groups if applicable
+    segmentId: z.string().optional(),
+    groupId: z.string().optional(),
 });
 
 export const CampaignQuerySchema = z.object({

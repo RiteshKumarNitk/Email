@@ -4,6 +4,7 @@ import EmailQueue, { IEmailQueue } from '@/models/EmailQueue';
 import User from '@/models/User';
 import { createTransporter, sendEmail } from '@/lib/email';
 import { ApiResponse } from '@/lib/api-response';
+import { injectTracking } from '@/lib/tracking';
 
 export class QueueService {
     static async add(userId: string, campaignId: string, recipient: string, options: { subject: string; html: string }) {
@@ -17,6 +18,21 @@ export class QueueService {
             status: 'queued',
             queuedAt: new Date(),
         });
+    }
+
+    static async addBulk(userId: string, campaignId: string, recipients: { email: string; name?: string }[], options: { subject: string; html: string }) {
+        await dbConnect();
+        const docs = recipients.map(r => ({
+            userId,
+            campaignId,
+            email: r.email,
+            subject: options.subject,
+            html: options.html.replace(/{{name}}/g, r.name || "Friend"), // Basic personalization here for speed
+            status: 'queued',
+            queuedAt: new Date(),
+        }));
+
+        return await EmailQueue.insertMany(docs);
     }
 
     static async processBatch(limit: number = 20) {
@@ -44,24 +60,42 @@ export class QueueService {
 
                 // Get User SMTP Config
                 const user = await User.findById(job.userId);
-                if (!user || !user.smtp) {
+                if (!user || !user.smtpConfigs || user.smtpConfigs.length === 0) {
                     throw new Error('User SMTP configuration missing');
                 }
 
+                // Rotation: Pick one with lowest usage count? Or Round Robin?
+                // Let's sort by usageCount to balance load.
+                const configs = user.smtpConfigs.sort((a, b) => (a.usageCount || 0) - (b.usageCount || 0));
+                const config = configs[0];
+
                 // Send Email
                 const transporter = createTransporter({
-                    host: user.smtp.host,
-                    port: user.smtp.port,
-                    secure: user.smtp.secure,
-                    user: user.smtp.user,
-                    pass: user.smtp.pass,
+                    host: config.host,
+                    port: config.port,
+                    secure: config.secure,
+                    user: config.user,
+                    pass: config.pass,
                 });
 
+                // Increment Usage
+                await User.updateOne(
+                    { _id: user._id, "smtpConfigs._id": config._id },
+                    { $inc: { "smtpConfigs.$.usageCount": 1 } }
+                );
+
+                // Inject Tracking
+                const trackedHtml = injectTracking(
+                    job.html || '<p>Empty Body</p>',
+                    job.campaignId,
+                    job.email
+                );
+
                 await sendEmail(transporter, {
-                    from: `"${user.name}" <${user.smtp.user}>`,
+                    from: config.fromEmail ? `"${user.name}" <${config.fromEmail}>` : `"${user.name}" <${config.user}>`,
                     to: job.email,
                     subject: job.subject || 'No Subject',
-                    html: job.html || '<p>Empty Body</p>',
+                    html: trackedHtml,
                 });
 
                 // Mark as Sent

@@ -10,15 +10,18 @@ export interface IUser extends Document {
     smtpUser?: string;
     smtpPass?: string;
     smtpVerified: boolean;
-    smtp?: {
+    smtpConfigs: {
+        _id: string; // Mongoose subdoc ID
         host: string;
         port: number;
         user: string;
         pass: string;
+        fromEmail: string;
         secure: boolean;
         verified: boolean;
         addedAt: Date;
-    };
+        usageCount: number;
+    }[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -31,18 +34,19 @@ const UserSchema = new Schema<IUser>(
         smtpUser: { type: String },
         smtpPass: { type: String },
         smtpVerified: { type: Boolean, default: false },
-        smtp: {
-            type: {
+        smtpConfigs: [
+            {
                 host: String,
                 port: Number,
                 user: String,
                 pass: String,
+                fromEmail: String, // Store the sender email or name
                 secure: Boolean,
                 verified: { type: Boolean, default: false },
-                addedAt: Date,
-            },
-            _id: false, // Prevents creating a separate _id for the smtp subdocument
-        },
+                addedAt: { type: Date, default: Date.now },
+                usageCount: { type: Number, default: 0 }, // For rotation
+            }
+        ],
     },
     { timestamps: true }
 );

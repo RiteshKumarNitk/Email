@@ -4,35 +4,9 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { motion } from "framer-motion";
+import DashboardChart from "@/components/DashboardChart";
 
-function CountUp({ value, duration = 800 }: { value: number; duration?: number }) {
-    const [count, setCount] = useState(0);
-
-    useEffect(() => {
-        let start = 0;
-        const end = Number(value) || 0;
-        if (end === 0) {
-            setCount(0);
-            return;
-        }
-
-        const step = Math.max(1, Math.floor(end / (duration / 16)));
-
-        const timer = setInterval(() => {
-            start += step;
-            if (start >= end) {
-                setCount(end);
-                clearInterval(timer);
-            } else {
-                setCount(start);
-            }
-        }, 16);
-
-        return () => clearInterval(timer);
-    }, [value, duration]);
-
-    return <>{count}</>;
-}
+import CountUp from "@/components/ui/CountUp";
 
 export default function Dashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -120,6 +94,15 @@ export default function Dashboard() {
                         </div>
                     </motion.div>
                 ))}
+            </div>
+
+            {/* CHART */}
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <h3 className="font-semibold text-gray-800 mb-6">Email Activity</h3>
+                <div className="h-[300px]">
+                    {/* Replace with real component */}
+                    <DashboardChart />
+                </div>
             </div>
 
             {/* DELIVERY SUMMARY */}

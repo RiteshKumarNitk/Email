@@ -26,6 +26,8 @@ export async function GET(req: NextRequest) {
                     _id: null,
                     totalSuccess: { $sum: "$successCount" },
                     totalFailure: { $sum: "$failureCount" },
+                    totalOpens: { $sum: "$openCount" },
+                    totalClicks: { $sum: "$clickCount" },
                 }
             }
         ]);
@@ -35,6 +37,8 @@ export async function GET(req: NextRequest) {
             emails: {
                 success: stats[0]?.totalSuccess || 0,
                 failure: stats[0]?.totalFailure || 0,
+                opens: stats[0]?.totalOpens || 0,
+                clicks: stats[0]?.totalClicks || 0,
             }
         };
 

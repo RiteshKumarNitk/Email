@@ -23,8 +23,12 @@ export interface ICampaign extends Document {
     successCount: number;
     failureCount: number;
     queueCount: number;
+    segmentId?: string;
+    groupId?: string;
     scheduledAt?: Date;
     sentAt?: Date;
+    openCount: number;
+    clickCount: number;
 }
 
 const CampaignSchema = new Schema<ICampaign>(
@@ -51,6 +55,10 @@ const CampaignSchema = new Schema<ICampaign>(
         successCount: { type: Number, default: 0 },
         failureCount: { type: Number, default: 0 },
         queueCount: { type: Number, default: 0 },
+        openCount: { type: Number, default: 0 },
+        clickCount: { type: Number, default: 0 },
+        segmentId: { type: String, index: true },
+        groupId: { type: String, index: true },
         scheduledAt: { type: Date },
         sentAt: { type: Date },
     },

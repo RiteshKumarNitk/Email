@@ -14,7 +14,9 @@ import {
     Folder,
     Settings,
     Menu,
-    Plus
+    Plus,
+    Filter,
+    Workflow
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -24,6 +26,8 @@ const NAV_ITEMS = [
     { label: "Queue", path: "/queue", icon: Clock },
     { label: "Contacts", path: "/contacts", icon: Users },
     { label: "Groups", path: "/groups", icon: Folder },
+    { label: "Segments", path: "/segments", icon: Filter },
+    { label: "Workflows", path: "/workflows", icon: Workflow },
     { label: "Settings", path: "/settings", icon: Settings },
 ];
 

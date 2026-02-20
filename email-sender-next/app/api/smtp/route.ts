@@ -1,60 +1,97 @@
 
-import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
-import dbConnect from '@/lib/db';
-import User from '@/models/User';
-import nodemailer from 'nodemailer';
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/lib/db";
+import User from "@/models/User";
+import nodemailer from "nodemailer";
+import { verifyToken } from "@/lib/auth";
+import { ApiResponse } from "@/lib/api-response";
 
-export async function POST(req: Request) {
+export async function GET(req: NextRequest) {
     try {
         await dbConnect();
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
-        const authHeader = req.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-        }
+        const dbUser = await User.findById(user.id).select("smtpConfigs");
 
-        const token = authHeader.split(' ')[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch (error) {
-            return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
-        }
+        // Hide password in response
+        const configs = dbUser?.smtpConfigs.map((c: any) => ({
+            _id: c._id,
+            host: c.host,
+            port: c.port,
+            user: c.user,
+            fromEmail: c.fromEmail,
+            verified: c.verified,
+            usageCount: c.usageCount
+        })) || [];
 
-        const { host, port, user, pass } = await req.json();
+        return ApiResponse.success(configs);
+    } catch (err: any) {
+        return ApiResponse.error("Failed to fetch SMTP configs", err);
+    }
+}
 
-        // 1. Verify SMTP credentials using Nodemailer
+export async function POST(req: NextRequest) {
+    try {
+        await dbConnect();
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
+
+        const { host, port, user: smtpUser, pass, fromEmail } = await req.json();
+
+        // 1. Verify SMTP
         const transporter = nodemailer.createTransport({
             host,
             port,
-            secure: port == 465, // strict check
-            auth: { user, pass },
+            secure: port == 465,
+            auth: { user: smtpUser, pass },
         });
 
         try {
             await transporter.verify();
         } catch (smtpError: any) {
-            return NextResponse.json({
-                message: 'SMTP Verification Failed',
-                error: smtpError.message
-            }, { status: 400 });
+            return ApiResponse.error("SMTP Verification Failed", smtpError.message, 400);
         }
 
-        // 2. Save to database if verified
+        // 2. Add to User's list
         const updatedUser = await User.findByIdAndUpdate(
-            decoded.id,
-            { smtp: { host, port, user, pass } },
-            { new: true, runValidators: true }
-        ).select('-password');
+            user.id,
+            {
+                $push: {
+                    smtpConfigs: {
+                        host,
+                        port,
+                        user: smtpUser,
+                        pass, // Encrypt in real app!
+                        fromEmail: fromEmail || smtpUser,
+                        secure: port == 465,
+                        verified: true,
+                    }
+                }
+            },
+            { new: true }
+        );
 
-        if (!updatedUser) {
-            return NextResponse.json({ message: 'User not found' }, { status: 404 });
-        }
-
-        return NextResponse.json({ message: 'SMTP settings saved', user: updatedUser });
-
+        return ApiResponse.success(updatedUser?.smtpConfigs, "SMTP Added Successfully");
     } catch (error: any) {
-        return NextResponse.json({ message: 'Server error', error: error.message }, { status: 500 });
+        return ApiResponse.error("Server error", error, 500);
+    }
+}
+
+export async function DELETE(req: NextRequest) {
+    try {
+        await dbConnect();
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
+
+        const { id } = await req.json(); // Config ID to remove
+
+        await User.findByIdAndUpdate(user.id, {
+            $pull: { smtpConfigs: { _id: id } }
+        });
+
+        return ApiResponse.success(null, "SMTP Config Removed");
+    } catch (error: any) {
+        return ApiResponse.error("Delete failed", error);
     }
 }

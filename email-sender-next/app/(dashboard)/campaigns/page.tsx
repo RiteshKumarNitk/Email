@@ -66,10 +66,26 @@ export default function Campaigns() {
     const sendCampaign = async (campaign: any) => {
         setOpenMenu(null);
 
+        // New Logic: If Segment attached, use the bulk send API
+        if (campaign.segmentId || campaign.groupId) {
+            if (confirm(`Send campaign on ${campaign.segmentId ? 'Segment' : 'Group'}? This will queue emails.`)) {
+                try {
+                    await api(`/campaigns/${campaign._id}/send`, { method: "POST" });
+                    alert("Campaign queued successfully!");
+                    load();
+                } catch (err) {
+                    console.error(err);
+                    alert("Failed to queue campaign.");
+                }
+            }
+            return;
+        }
+
         const total = campaign.totalRecipients || campaign.queueCount || 0;
 
         if (total > 0) {
             try {
+                // If it has recipients but no segment, might be manual list
                 await api(`/campaigns/${campaign._id}/send-now`, {
                     method: "POST",
                 });

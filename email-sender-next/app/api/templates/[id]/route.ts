@@ -1,114 +1,79 @@
 
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import Template from "@/models/Template";
+import { verifyToken } from "@/lib/auth";
+import { ApiResponse } from "@/lib/api-response";
 
 export async function GET(
-    req: Request,
-    { params }: { params: { id: string } }
+    req: NextRequest,
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         await dbConnect();
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
-        const { id } = params;
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
-
-        const template = await Template.findOne({ _id: id, userId: decoded.id });
+        const template = await Template.findById(params.id);
         if (!template) {
-            return NextResponse.json({ message: "Template not found" }, { status: 404 });
+            return ApiResponse.error("Template not found", null, 404);
         }
 
-        return NextResponse.json(template);
+        return ApiResponse.success(template);
     } catch (error: any) {
-        return NextResponse.json(
-            { message: "Fetch failed", error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Fetch failed", error);
     }
 }
 
+
 export async function PATCH(
-    req: Request,
-    { params }: { params: { id: string } }
+    req: NextRequest,
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         await dbConnect();
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
-        const { id } = params;
         const updateData = await req.json();
 
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
-
-        const template = await Template.findOneAndUpdate(
-            { _id: id, userId: decoded.id },
+        // Should filter by ownership if userId existed
+        const template = await Template.findByIdAndUpdate(
+            params.id,
             updateData,
             { new: true }
         );
 
         if (!template) {
-            return NextResponse.json({ message: "Template not found" }, { status: 404 });
+            return ApiResponse.error("Template not found", null, 404);
         }
 
-        return NextResponse.json(template);
+        return ApiResponse.success(template);
     } catch (error: any) {
-        return NextResponse.json(
-            { message: "Update failed", error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Update failed", error);
     }
 }
 
 export async function DELETE(
-    req: Request,
-    { params }: { params: { id: string } }
+    req: NextRequest,
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
         await dbConnect();
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
 
-        const { id } = params;
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
-
-        const result = await Template.findOneAndDelete({ _id: id, userId: decoded.id });
+        const result = await Template.findByIdAndDelete(params.id);
         if (!result) {
-            return NextResponse.json({ message: "Template not found" }, { status: 404 });
+            return ApiResponse.error("Template not found", null, 404);
         }
 
-        return NextResponse.json({ message: "Deleted" });
+        return ApiResponse.success(null, "Template deleted");
     } catch (error: any) {
-        return NextResponse.json(
-            { message: "Delete failed", error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Delete failed", error);
     }
 }
+

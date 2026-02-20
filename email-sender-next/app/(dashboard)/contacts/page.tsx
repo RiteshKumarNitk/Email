@@ -5,12 +5,21 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import CsvUploadModal from "@/components/CsvUploadModal";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
 export default function Contacts() {
     const router = useRouter();
     const [contacts, setContacts] = useState<any[]>([]);
     const [groups, setGroups] = useState<any[]>([]);
     const [selected, setSelected] = useState<string[]>([]);
+    const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+
+    const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+    };
+
     const [search, setSearch] = useState("");
     const [groupFilter, setGroupFilter] = useState("All");
 
@@ -40,14 +49,13 @@ export default function Contacts() {
     /* ================= FILTER ================= */
     const filtered = contacts.filter((c) => {
         const matchGroup =
-            groupFilter === "All" || c.groupId === groupFilter || c.groupName === groupFilter; // API needs to return group info? Or use ID.
-        // Assuming backend returns groupId for now. If groupName is needed, it should be populated.
+            groupFilter === "All" || c.groupId === groupFilter || c.groupName === groupFilter;
 
         const matchSearch =
             c.name?.toLowerCase().includes(search.toLowerCase()) ||
             c.email?.toLowerCase().includes(search.toLowerCase());
 
-        return matchSearch;
+        return matchSearch && matchGroup;
     });
 
     /* ================= BULK ================= */
@@ -89,7 +97,24 @@ export default function Contacts() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {/* TOAST SYSTEM */}
+            <AnimatePresence>
+                {toast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, x: "-50%" }}
+                        exit={{ opacity: 0, y: 20, x: "-50%" }}
+                        className={`fixed bottom-10 left-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl font-bold flex items-center gap-3 border ${toast.type === 'error'
+                            ? "bg-red-500 text-white border-red-400"
+                            : "bg-indigo-600 text-white border-indigo-400"
+                            }`}
+                    >
+                        {toast.type === 'error' ? <AlertCircle size={20} /> : <CheckCircle size={20} />}
+                        {toast.message}
+                    </motion.div>
+                )}
+            </AnimatePresence>
             {/* HEADER */}
             <div className="flex justify-between items-center">
                 <div>
@@ -150,12 +175,37 @@ export default function Contacts() {
                 </select>
 
                 {selected.length > 0 && (
-                    <button
-                        onClick={bulkDelete}
-                        className="px-4 py-2 rounded-lg bg-red-100 text-red-700 font-medium hover:bg-red-200 ml-auto"
-                    >
-                        Delete Selected
-                    </button>
+                    <div className="flex gap-2 ml-auto">
+                        <select
+                            className="px-4 py-2 border rounded-lg outline-none bg-indigo-50 text-indigo-700 font-bold text-sm"
+                            onChange={async (e) => {
+                                const groupId = e.target.value;
+                                if (!groupId) return;
+                                try {
+                                    await api("/contacts/bulk-group", {
+                                        method: "POST",
+                                        body: { ids: selected, groupId }
+                                    });
+                                    setSelected([]);
+                                    load();
+                                    showToast("Contacts moved to group");
+                                } catch (err: any) {
+                                    showToast(err.message || "Failed to move contacts", "error");
+                                }
+                            }}
+                        >
+                            <option value="">Move to Group...</option>
+                            {groups.map(g => (
+                                <option key={g._id} value={g._id}>{g.name}</option>
+                            ))}
+                        </select>
+                        <button
+                            onClick={bulkDelete}
+                            className="px-4 py-2 rounded-lg bg-red-100 text-red-700 font-medium hover:bg-red-200"
+                        >
+                            Delete Selected
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -193,8 +243,9 @@ export default function Contacts() {
                                 <td className="px-6 py-4 font-medium text-gray-900">{c.name || "—"}</td>
                                 <td className="px-6 py-4 text-gray-600">{c.email}</td>
                                 <td className="px-6 py-4 text-gray-600">
-                                    {/* Display group name if available, otherwise "None" */}
-                                    {c.groupName || (c.groupId ? "Group ID: " + c.groupId : "—")}
+                                    <span className="px-3 py-1 bg-gray-50 text-gray-600 rounded-full text-[10px] font-bold uppercase tracking-wider border border-gray-100 italic">
+                                        {groups.find(g => g._id === c.groupId)?.name || "Unassigned"}
+                                    </span>
                                 </td>
                                 <td className="px-6 py-4 text-right space-x-3">
                                     <button

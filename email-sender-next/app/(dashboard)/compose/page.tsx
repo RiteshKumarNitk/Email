@@ -8,6 +8,7 @@ import AttachmentBar from "@/components/AttachmentBar";
 import ScheduleModal from "@/components/ScheduleModal";
 import Button from "@/components/Button";
 import { api } from "@/lib/api";
+import AIPanel from "@/components/AIPanel";
 
 const toast = (msg: string) => {
     const el = document.createElement("div");
@@ -288,9 +289,25 @@ function ComposeContent() {
 
                 <GmailEditor value={body} onChange={setBody} />
 
+                {/* AI TOOLS SECTION */}
+                <div className="mt-6 border-t pt-6">
+                    <AIPanel
+                        subject={subject}
+                        html={body}
+                        onApply={(res) => {
+                            if (res.mode === "improve-subject" || res.mode === "subject-variants" || res.mode === "emoji-optimize") {
+                                setSubject(res.data.subject || (res.data.variants && res.data.variants[0]) || subject);
+                            }
+                            if (res.mode === "rewrite-body") {
+                                setBody(res.data.html);
+                            }
+                        }}
+                    />
+                </div>
+
                 <textarea
                     placeholder="Signature"
-                    className="w-full border rounded p-2 text-sm"
+                    className="w-full border rounded p-2 text-sm mt-4"
                     value={footer}
                     onChange={(e) => setFooter(e.target.value)}
                 />

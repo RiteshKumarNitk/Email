@@ -1,14 +1,18 @@
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import EmailQueue from '@/models/EmailQueue';
+import { verifyToken } from '@/lib/auth';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         await dbConnect();
-        const { userId, email, subject, html, campaignId } = await req.json();
+        const user = await verifyToken(req);
+        if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
-        if (!userId || !email || !subject || !html) {
+        const { email, subject, html, campaignId } = await req.json();
+
+        if (!email || !subject || !html) {
             return NextResponse.json(
                 { message: 'Missing required fields' },
                 { status: 400 }
@@ -16,7 +20,7 @@ export async function POST(req: Request) {
         }
 
         const queueItem = await EmailQueue.create({
-            userId,
+            userId: user.id,
             email,
             subject,
             html,
@@ -34,11 +38,14 @@ export async function POST(req: Request) {
     }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
         await dbConnect();
-        // Just fetch queued or processing for display/workers
-        const queue = await EmailQueue.find({ status: { $in: ['queued', 'processing', 'failed'] } }).sort({ queuedAt: 1 });
+        const user = await verifyToken(req);
+        if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+
+        // Fetch based on userId
+        const queue = await EmailQueue.find({ userId: user.id }).sort({ createdAt: -1 });
         return NextResponse.json(queue);
     } catch (error: any) {
         return NextResponse.json(

@@ -53,7 +53,7 @@ export default function Templates() {
             await api(`/templates/${id}/favorite`, { method: "PATCH" });
         } catch (err) {
             console.error(err);
-            load(); // Revert on error
+            showToast("Failed to update favorite", 'error');
         }
     };
 
@@ -69,9 +69,11 @@ export default function Templates() {
             });
 
             setEditing(null);
+            showToast("Template saved successfully");
             load();
         } catch (err) {
             console.error(err);
+            showToast("Failed to save changes", 'error');
         }
     };
 
@@ -79,9 +81,11 @@ export default function Templates() {
     const cloneAB = async (id: string) => {
         try {
             await api(`/templates/${id}/clone`, { method: "POST" });
+            showToast("A/B variant created");
             load();
         } catch (err) {
             console.error(err);
+            showToast("Failed to create variant", 'error');
         }
     };
 
@@ -100,8 +104,10 @@ export default function Templates() {
                 ...editing,
                 subject: res.subject,
             });
+            showToast("Subject optimized by AI");
         } catch (err) {
             console.error(err);
+            showToast("AI improvement failed", 'error');
         }
     };
 
@@ -110,8 +116,46 @@ export default function Templates() {
         router.push(`/compose?templateId=${t._id}`);
     };
 
+    const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' } | null>(null);
+
+    const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+    };
+
+    /* ================= DELETE TEMPLATE ================= */
+    const deleteTemplate = async (id: string) => {
+        if (!confirm("Are you sure you want to delete this template?")) return;
+        try {
+            await api(`/templates/${id}`, { method: "DELETE" });
+            showToast("Template deleted successfully");
+            load();
+        } catch (err: any) {
+            console.error("Delete failed:", err);
+            showToast(err.message || "Failed to delete template", 'error');
+        }
+    };
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
+            {/* TOAST SYSTEM */}
+            <AnimatePresence>
+                {toast && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, x: "-50%" }}
+                        exit={{ opacity: 0, y: 20, x: "-50%" }}
+                        className={`fixed bottom-10 left-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl font-bold flex items-center gap-3 border ${toast.type === 'error'
+                            ? "bg-red-500 text-white border-red-400"
+                            : "bg-indigo-600 text-white border-indigo-400"
+                            }`}
+                    >
+                        <div className={`w-2 h-2 rounded-full animate-ping ${toast.type === 'error' ? 'bg-red-200' : 'bg-indigo-200'}`}></div>
+                        {toast.message}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* ================= HEADER ================= */}
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold text-gray-800">Templates</h1>
@@ -150,7 +194,24 @@ export default function Templates() {
             </div>
 
             {/* ================= AI TEMPLATE GENERATOR ================= */}
-            <AITemplateGenerator />
+            <AITemplateGenerator
+                onUse={async (res) => {
+                    try {
+                        await api("/templates", {
+                            method: "POST",
+                            body: {
+                                name: res.subject.replace("[AI] ", "") || "AI Generated Template",
+                                subject: res.subject,
+                                html: res.html,
+                                category: res.category || "promo"
+                            }
+                        });
+                        load();
+                    } catch (err) {
+                        console.error("Failed to save AI template", err);
+                    }
+                }}
+            />
 
             {/* ================= TEMPLATE GRID ================= */}
             {loading ? (
@@ -176,6 +237,7 @@ export default function Templates() {
                                 }}
                                 onPreview={setPreview}
                                 onClone={cloneAB}
+                                onDelete={deleteTemplate}
                             />
                         ))}
                     </AnimatePresence>

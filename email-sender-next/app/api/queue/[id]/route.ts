@@ -1,33 +1,26 @@
 
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import EmailQueue from "@/models/EmailQueue";
+import { verifyToken } from "@/lib/auth";
 
 export async function DELETE(
-    req: Request,
-    { params }: { params: { id: string } }
+    req: NextRequest,
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
-
         await dbConnect();
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+        const user = await verifyToken(req);
+        if (!user) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
         const { id } = params;
 
         const result = await EmailQueue.findOneAndDelete({
             _id: id,
-            userId: decoded.id
+            userId: user.id
         });
 
         if (!result) {
@@ -44,29 +37,22 @@ export async function DELETE(
 }
 
 export async function PATCH(
-    req: Request,
-    { params }: { params: { id: string } }
+    req: NextRequest,
+    props: { params: Promise<{ id: string }> }
 ) {
+    const params = await props.params;
     try {
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
-
         await dbConnect();
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+        const user = await verifyToken(req);
+        if (!user) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
         const { id } = params;
         const body = await req.json();
 
         const result = await EmailQueue.findOneAndUpdate(
-            { _id: id, userId: decoded.id },
+            { _id: id, userId: user.id },
             body,
             { new: true }
         );

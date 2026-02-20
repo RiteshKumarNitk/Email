@@ -1,29 +1,21 @@
 
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import EmailQueue from "@/models/EmailQueue";
 import csvParser from "csv-parser";
 import { Readable } from "stream";
+import { verifyToken } from "@/lib/auth";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
         await dbConnect();
-        const { searchParams } = new URL(req.url);
-        const mode = searchParams.get("mode") || "append";
-
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        const user = await verifyToken(req);
+        if (!user) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-        }
+        const { searchParams } = new URL(req.url);
+        const mode = searchParams.get("mode") || "append";
 
         const formData = await req.formData();
         const file = formData.get("file") as File;
@@ -52,7 +44,7 @@ export async function POST(req: Request) {
 
         // Validate and format
         const newItems = results.map(row => ({
-            userId: decoded.id,
+            userId: user.id,
             email: row.email || row.Email,
             subject: row.subject || row.Subject || "(No Subject)",
             html: row.html || row.Body || row.body || "",
@@ -60,7 +52,7 @@ export async function POST(req: Request) {
         })).filter(item => item.email); // filter out empty rows
 
         if (mode === "replace") {
-            await EmailQueue.deleteMany({ userId: decoded.id, status: "queued" });
+            await EmailQueue.deleteMany({ userId: user.id, status: "queued" });
         }
 
         if (newItems.length > 0) {

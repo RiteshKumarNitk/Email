@@ -52,7 +52,7 @@ export const api = async (path: string, options: any = {}) => {
                 const firstError = Object.values(result.errors)[0];
                 throw new Error((firstError as any)?.[0] || result.message || "Validation Error");
             }
-            throw new Error(result.message || `Request failed (${res.status})`);
+            throw new Error(`Error ${res.status}: ${result.message || "Request failed"}`);
         }
 
         // Return the actual data payload if using standard wrapper, otherwise result

@@ -15,7 +15,7 @@ export async function GET(
         const user = await verifyToken(req);
         if (!user) return ApiResponse.unauthorized();
 
-        const template = await Template.findById(params.id);
+        const template = await Template.findOne({ _id: params.id, createdBy: user.id });
         if (!template) {
             return ApiResponse.error("Template not found", null, 404);
         }
@@ -39,9 +39,8 @@ export async function PATCH(
 
         const updateData = await req.json();
 
-        // Should filter by ownership if userId existed
-        const template = await Template.findByIdAndUpdate(
-            params.id,
+        const template = await Template.findOneAndUpdate(
+            { _id: params.id, createdBy: user.id },
             updateData,
             { new: true }
         );
@@ -66,9 +65,9 @@ export async function DELETE(
         const user = await verifyToken(req);
         if (!user) return ApiResponse.unauthorized();
 
-        const result = await Template.findByIdAndDelete(params.id);
+        const result = await Template.findOneAndDelete({ _id: params.id, createdBy: user.id });
         if (!result) {
-            return ApiResponse.error("Template not found", null, 404);
+            return ApiResponse.error("Template not found or unauthorized", null, 404);
         }
 
         return ApiResponse.success(null, "Template deleted");

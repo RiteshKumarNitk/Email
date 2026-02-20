@@ -1,18 +1,33 @@
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Template from '@/models/Template';
+import { verifyToken } from '@/lib/auth';
+import { ApiResponse } from '@/lib/api-response';
 
-export async function POST(req: Request) {
+export async function GET(req: NextRequest) {
     try {
         await dbConnect();
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
+
+        const templates = await Template.find({ createdBy: user.id }).sort({ createdAt: -1 });
+        return ApiResponse.success(templates);
+    } catch (error: any) {
+        return ApiResponse.error("Fetch failed", error);
+    }
+}
+
+export async function POST(req: NextRequest) {
+    try {
+        await dbConnect();
+        const user = await verifyToken(req);
+        if (!user) return ApiResponse.unauthorized();
+
         const { name, subject, html, category, design } = await req.json();
 
         if (!name || !subject || !html) {
-            return NextResponse.json(
-                { message: 'Missing required fields' },
-                { status: 400 }
-            );
+            return ApiResponse.error("Missing required fields", null, 400);
         }
 
         const template = await Template.create({
@@ -21,26 +36,11 @@ export async function POST(req: Request) {
             html,
             category,
             design,
+            createdBy: user.id
         });
 
-        return NextResponse.json(template, { status: 201 });
+        return ApiResponse.success(template, "Template created", 201);
     } catch (error: any) {
-        return NextResponse.json(
-            { message: 'Internal Server Error', error: error.message },
-            { status: 500 }
-        );
-    }
-}
-
-export async function GET(req: Request) {
-    try {
-        await dbConnect();
-        const templates = await Template.find({}).sort({ createdAt: -1 });
-        return NextResponse.json(templates);
-    } catch (error: any) {
-        return NextResponse.json(
-            { message: 'Internal Server Error', error: error.message },
-            { status: 500 }
-        );
+        return ApiResponse.error("Creation failed", error);
     }
 }

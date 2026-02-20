@@ -1,24 +1,15 @@
 
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/db";
 import EmailQueue from "@/models/EmailQueue";
+import { verifyToken } from "@/lib/auth";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
     try {
-        const authHeader = req.headers.get("authorization");
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-        }
-
         await dbConnect();
-
-        const token = authHeader.split(" ")[1];
-        let decoded: any;
-        try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        } catch {
-            return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+        const user = await verifyToken(req);
+        if (!user) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
         const { ids } = await req.json();
@@ -29,7 +20,7 @@ export async function POST(req: Request) {
 
         const result = await EmailQueue.deleteMany({
             _id: { $in: ids },
-            userId: decoded.id
+            userId: user.id
         });
 
         return NextResponse.json({ message: "Deleted", count: result.deletedCount });

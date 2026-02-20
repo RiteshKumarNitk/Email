@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -10,8 +10,18 @@ export default function Login() {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Load last login email from localStorage
+    useEffect(() => {
+        const savedEmail = localStorage.getItem("last_login_email");
+        if (savedEmail) {
+            setEmail(savedEmail);
+            setRememberMe(true);
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -34,6 +44,14 @@ export default function Login() {
             });
 
             localStorage.setItem("token", data.token);
+
+            // Save email if rememberMe is enabled
+            if (rememberMe) {
+                localStorage.setItem("last_login_email", trimmedEmail);
+            } else {
+                localStorage.removeItem("last_login_email");
+            }
+
             router.push("/");
             router.refresh();
         } catch (err: any) {
@@ -74,7 +92,16 @@ export default function Login() {
                         />
                     </div>
 
-                    <div className="text-right text-sm">
+                    <div className="flex items-center justify-between text-sm">
+                        <label className="flex items-center gap-2 cursor-pointer text-gray-600">
+                            <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            Remember email
+                        </label>
                         <Link href="/forgot-password" title="Forgot Password?" className="text-blue-600 hover:underline">
                             Forgot Password?
                         </Link>
